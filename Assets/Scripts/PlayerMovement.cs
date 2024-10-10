@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -25,18 +26,20 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private Animator anim;
     private Vector3 originalScale; // faces right
+    private bool hasAnim = false;
 
     void Awake()
     {
         originalScale = transform.localScale;
         myRigidbody = GetComponent<Rigidbody2D>();
-        //anim = GetComponent<Animator>();
+        anim = GetComponent<Animator>();
+
+        hasAnim = anim != null;
 
         groundLayerInt = Mathf.RoundToInt(Mathf.Log(groundLayer.value, 2));
         playerLayerInt = Mathf.RoundToInt(Mathf.Log(playerLayer.value, 2));
 
         jumpRequestActive = false;
-
     }
 
     // Update is called once per frame
@@ -62,7 +65,8 @@ public class PlayerMovement : MonoBehaviour
         if (jumpRequestActive && IsGrounded()) // only allows jumping if not already up
         {
             myRigidbody.AddForce(new Vector2(myRigidbody.velocity.x, jumpForce), ForceMode2D.Impulse);
-            anim.SetTrigger("Jump");
+            if(hasAnim)
+                anim.SetTrigger("Jump");
 
             jumpRequestActive = false;
             StopAllCoroutines();
@@ -73,8 +77,11 @@ public class PlayerMovement : MonoBehaviour
             jumpBufferCoroutine = StartCoroutine(JumpBuffer());
         }
 
-        anim.SetFloat("XSpeed", Mathf.Abs(xtrans));
-        anim.SetFloat("YSpeed", myRigidbody.velocity.y);
+        if (hasAnim)
+        {
+            anim.SetFloat("XSpeed", Mathf.Abs(xtrans));
+            anim.SetFloat("YSpeed", myRigidbody.velocity.y);
+        }
     }
 
     private IEnumerator JumpBuffer()
@@ -86,7 +93,8 @@ public class PlayerMovement : MonoBehaviour
             if (IsGrounded())
             {
                 myRigidbody.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
-                anim.SetTrigger("Jump");
+                if (hasAnim)
+                    anim.SetTrigger("Jump");
 
                 break;
             }
